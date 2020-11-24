@@ -141,20 +141,18 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: lifecycle-demo</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">  - name: lifecycle-demo-container</span><br><span class="line">    image: nginx</span><br><span class="line">    lifecycle:</span><br><span class="line">      postStart:</span><br><span class="line">        exec:</span><br><span class="line">          command: [&quot;&#x2F;bin&#x2F;sh&quot;, &quot;-c&quot;, &quot;echo Hello from the postStart handler &gt; &#x2F;usr&#x2F;share&#x2F;message&quot;]</span><br><span class="line">      preStop:</span><br><span class="line">        exec:</span><br><span class="line">          command: [&quot;&#x2F;usr&#x2F;sbin&#x2F;nginx&quot;,&quot;-s&quot;,&quot;quit&quot;]</span><br></pre></td></tr></table></figure>
 
 
-
 </li>
 </ul>
 <p>postStart  : 在容器启动后，立刻执行一个指定的操作。需要明确的是，postStart 定义的操作，虽然是在 Docker 容器 ENTRYPOINT 执行之后，但它并不严格保证顺序。也就是说，在 postStart 启动时，ENTRYPOINT 有可能还没有结束。</p>
 <p>preStop: 容器被杀死之前（比如，收到了 SIGKILL 信号）。而需要明确的是，preStop 操作的执行，是同步的。所以，它会阻塞当前的容器杀死流程，直到这个 Hook 定义操作完成之后，才允许容器被杀死，这跟 postStart 不一样。</p>
 <h2 id="Projected-Volume"><a href="#Projected-Volume" class="headerlink" title="Projected Volume"></a>Projected Volume</h2><p>它们存在的意义不是为了存放容器里的数据，也不是用来进行容器和宿主机之间的数据交换。这些特殊 Volume 的作用，是为容器提供预先定义好的数据</p>
 <h3 id="Secret"><a href="#Secret" class="headerlink" title="Secret"></a>Secret</h3><ul>
-<li><p>把 Pod 想要访问的加密数据，存放到 Etcd 中,通过在 Pod 的容器里挂载 Volume 的方式，访问 Secret 里保存的信息。</p>
+<li>把 Pod 想要访问的加密数据，存放到 Etcd 中,通过在 Pod 的容器里挂载 Volume 的方式，访问 Secret 里保存的信息。</li>
+</ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: mysecret</span><br><span class="line">type: Opaque</span><br><span class="line">data:</span><br><span class="line">  user: YWRtaW4&#x3D;</span><br><span class="line">  pass: MWYyZDFlMmU2N2Rm</span><br></pre></td></tr></table></figure>
 
 
 
-</li>
-</ul>
 <h3 id="ConfigMap"><a href="#ConfigMap" class="headerlink" title="ConfigMap"></a>ConfigMap</h3><ul>
 <li>它与 Secret 的区别在于，ConfigMap 保存的是不需要加密的、应用所需的配置信息</li>
 </ul>
@@ -162,19 +160,18 @@
 <li><p>让 Pod 里的容器能够直接获取到这个 Pod API 对象本身的信息（/etc/podinfo/labels）</p>
 </li>
 <li><p>Downward API 能够获取到的信息，一定是 Pod 里的容器进程启动之前就能够确定下来的信息</p>
+</li>
+</ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">1. 使用fieldRef可以声明使用:</span><br><span class="line">spec.nodeName - 宿主机名字</span><br><span class="line">status.hostIP - 宿主机IP</span><br><span class="line">metadata.name - Pod的名字</span><br><span class="line">metadata.namespace - Pod的Namespace</span><br><span class="line">status.podIP - Pod的IP</span><br><span class="line">spec.serviceAccountName - Pod的Service Account的名字</span><br><span class="line">metadata.uid - Pod的UID</span><br><span class="line">metadata.labels[&#39;&lt;KEY&gt;&#39;] - 指定&lt;KEY&gt;的Label值</span><br><span class="line">metadata.annotations[&#39;&lt;KEY&gt;&#39;] - 指定&lt;KEY&gt;的Annotation值</span><br><span class="line">metadata.labels - Pod的所有Label</span><br><span class="line">metadata.annotations - Pod的所有Annotation</span><br><span class="line"></span><br><span class="line">2. 使用resourceFieldRef可以声明使用:</span><br><span class="line">容器的CPU limit</span><br><span class="line">容器的CPU request</span><br><span class="line">容器的memory limit</span><br><span class="line">容器的memory request</span><br></pre></td></tr></table></figure>
 
 
 
-</li>
-</ul>
 <h3 id="ServiceAccountToken"><a href="#ServiceAccountToken" class="headerlink" title="ServiceAccountToken"></a>ServiceAccountToken</h3><ul>
-<li><p>是一种特殊的**secret **</p>
+<li>是一种特殊的**secret **</li>
+</ul>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls &#x2F;var&#x2F;run&#x2F;secrets&#x2F;kubernetes.io&#x2F;serviceaccount </span><br><span class="line">ca.crt namespace  token</span><br></pre></td></tr></table></figure>
 
-<p>这种把 Kubernetes 客户端以容器的方式运行在集群里，然后使用 default Service Account 自动授权的方式，被称作“InClusterConfig”，也是我最推荐的进行 Kubernetes API 编程的授权方式。</p>
-</li>
-</ul>
+<p>  这种把 Kubernetes 客户端以容器的方式运行在集群里，然后使用 default Service Account 自动授权的方式，被称作“InClusterConfig”，也是我最推荐的进行 Kubernetes API 编程的授权方式。</p>
 <h2 id="RestartPolicy"><a href="#RestartPolicy" class="headerlink" title="RestartPolicy"></a>RestartPolicy</h2><p>pod.spec.restartPolicy</p>
 <p>Pod 的恢复过程，永远都是发生在当前节点上，而不会跑到别的节点上去。事实上，一旦一个 Pod 与一个节点（Node）绑定，除非这个绑定发生了变化（pod.spec.node 字段被修改），否则它永远都不会离开这个节点。这也就意味着，如果这个宿主机宕机了，这个 Pod 也不会主动迁移到其他节点上去。</p>
 <p>而如果你想让 Pod 出现在其他的可用节点上，就必须使用 Deployment 这样的“控制器”来管理 Pod，哪怕你只需要一个 Pod 副本。</p>
@@ -202,11 +199,9 @@
 <h1 id="Service"><a href="#Service" class="headerlink" title="Service"></a>Service</h1><p>访问service两种方式：</p>
 <p>Virtual IP，即：虚拟 IP . Cluster IP</p>
 <p>DNS </p>
-<pre><code>这时候，只要我访问“my-svc.my-namespace.svc.cluster.local”这条 DNS 记录，就可以访问到名叫 my-svc 的 Service 所代理的某一个 Pod。具体还可以分为两种处理方法：
-
-第一种处理方法，是 Normal Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，正是 my-svc 这个 Service 的 VIP，后面的流程就跟 VIP 方式一致了。
-
-而第二种处理方法，正是 Headless Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，直接就是 my-svc 代理的某一个 Pod 的 IP 地址。可以看到，这里的区别在于，Headless Service 不需要分配一个 VIP，而是可以直接以 DNS 记录的方式解析出被代理 Pod 的 IP 地址。</code></pre>
+<p>这时候，只要我访问“my-svc.my-namespace.svc.cluster.local”这条 DNS 记录，就可以访问到名叫 my-svc 的 Service 所代理的某一个 Pod。具体还可以分为两种处理方法：</p>
+<p>第一种处理方法，是 Normal Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，正是 my-svc 这个 Service 的 VIP，后面的流程就跟 VIP 方式一致了。</p>
+<p>而第二种处理方法，正是 Headless Service。这种情况下，你访问“my-svc.my-namespace.svc.cluster.local”解析到的，直接就是 my-svc 代理的某一个 Pod 的 IP 地址。可以看到，这里的区别在于，Headless Service 不需要分配一个 VIP，而是可以直接以 DNS 记录的方式解析出被代理 Pod 的 IP 地址。</p>
 
         </div>
         
