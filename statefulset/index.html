@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <title>liluyao - 专注于golang 微服务 kubernetes</title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_859455_eaq7v6w8ktj.css">
+<meta name="generator" content="Hexo 5.2.0"></head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <div class="header-title">
+
+        </div>
+        <nav class="header-nav">
+            
+            <a href="/" class="header-nav-link" >
+                Home
+            </a>
+            
+
+            
+            <a href="/archives" class="header-nav-link">
+                Archives
+            </a>
+            
+
+            
+            <a href="/tags" class="header-nav-link">
+                Tags
+            </a>
+            
+
+            
+            <a href="/about/" class="header-nav-link">
+                About
+            </a>
+            
+        </nav>
+    </div>
+</header>
+<header class="mobile-header">
+    <div class="mobile-nav">
+        <div class="mobile-nav-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="mobile-nav-title">
+            <a href="/" class="mobile-nav-title-link">Liluyao's Blog</a>
+        </div>
+
+    </div>
+    <nav class="mobile-menu">
+        <ul class="mobile-menu-list">
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-home"></i>
+                <a href="/" class="mobile-nav-link">Home</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-archive"></i>
+                <a href="/archives" class="mobile-nav-link">Archives</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-tag"></i>
+                <a href="/tags" class="mobile-nav-link">Tags</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-about"></i>
+                <a href="/about/" class="mobile-nav-link">About</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<div class="main">
+    <div class="content-inner">
+        <div class="posts">
+    <article class="post-whole">
+        <div class="post-title">
+            <h2 class="title">statefulset</h2>
+            <div class="post-meta">
+                <span class="post-time">2020-11-27</span>
+                
+                <span class="post-visit"> visited：<span id="busuanzi_value_page_pv"></span></span>
+            </div>
+        </div>
+        <div class="post-toc" id="post-toc">
+    <strong class="post-toc-title">目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Statefulset%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-lt-mysql%E9%9B%86%E7%BE%A4-gt"><span class="toc-text">Statefulset最佳实践 &lt;mysql集群&gt;</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9C%80%E6%B1%82"><span class="toc-text">需求</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%97%9B%E7%82%B9"><span class="toc-text">痛点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E8%B7%B5"><span class="toc-text">实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-ConfigMap"><span class="toc-text">1 ConfigMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Service"><span class="toc-text">2 Service</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AD%97%E6%AE%B5%E8%AE%BE%E8%AE%A1"><span class="toc-text">3 字段设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-sidecar"><span class="toc-text">4 sidecar</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-mysql-pod"><span class="toc-text">5 mysql pod</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%88%9B%E5%BB%BAPV"><span class="toc-text">6 创建PV</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+    <div class="back-to-top" id="back-to-top">
+        <a href="javascript:void(0);">回到顶部</a>
+    </div>
+</div>
+        <div class="post-content">
+            <h1 id="Statefulset最佳实践-lt-mysql集群-gt"><a href="#Statefulset最佳实践-lt-mysql集群-gt" class="headerlink" title="Statefulset最佳实践 &lt;mysql集群&gt;"></a>Statefulset最佳实践 &lt;mysql集群&gt;</h1><a id="more"></a>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>典型的主从模式 MySQL 集群 </p>
+<blockquote>
+<p>是一个“主从复制”（Maser-Slave Replication）的 MySQL 集群；</p>
+<p>有 1 个主节点（Master）；</p>
+<p>有多个从节点（Slave）；</p>
+<p>从节点需要能水平扩展；</p>
+<p>所有的写操作，只能在主节点上执行；读操作可以在所有节点上执行。</p>
+</blockquote>
+<h1 id="痛点"><a href="#痛点" class="headerlink" title="痛点"></a>痛点</h1><blockquote>
+<p>Master 节点和 Slave 节点需要有不同的配置文件（即：不同的 my.cnf）；</p>
+<p>Master 节点和 Slave 节点需要能够传输备份信息文件；</p>
+<p>在 Slave 节点第一次启动之前，需要执行一些初始化 SQL 操作；</p>
+<p>MySQL 本身同时拥有拓扑状态（主从节点的区别）和存储状态（MySQL 保存在本地的数据)</p>
+</blockquote>
+<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h3 id="1-ConfigMap"><a href="#1-ConfigMap" class="headerlink" title="1 ConfigMap"></a>1 ConfigMap</h3><ul>
+<li>给主从节点分别准备两份不同的 MySQL 配置文件，然后根据 Pod 的序号（Index）挂载进去 </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: mysql</span><br><span class="line">  labels:</span><br><span class="line">    app: mysql</span><br><span class="line">data:</span><br><span class="line">  master.cnf: |</span><br><span class="line">    # 主节点MySQL的配置文件</span><br><span class="line">    [mysqld]</span><br><span class="line">    log-bin</span><br><span class="line">  slave.cnf: |</span><br><span class="line">    # 从节点MySQL的配置文件</span><br><span class="line">    [mysqld]</span><br><span class="line">    super-read-only</span><br><span class="line">    </span><br><span class="line">定义了 master.cnf 和 slave.cnf 两个 MySQL 的配置文件。</span><br><span class="line">master.cnf 开启了 log-bin，即：使用二进制日志文件的方式进行主从复制，这是一个标准的设置。</span><br><span class="line">slave.cnf 的开启了 super-read-only，代表的是从节点会拒绝除了主节点的数据同步操作之外的所有写操作，即：它对用户是只读的。</span><br><span class="line">ConfigMap 定义里的 data 部分，是 Key-Value 格式的。比如，master.cnf 就是这份配置数据的 Key，而“|”后面的内容，就是这份配置数据的 Value。这份数据将来挂载进 Master 节点对应的 Pod 后，就会在 Volume 目录里生成一个叫作 master.cnf 的文件。</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-Service"><a href="#2-Service" class="headerlink" title="2 Service"></a>2 Service</h3><ul>
+<li>创建两个 Service 来供 StatefulSet 以及用户使用</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: mysql</span><br><span class="line">  labels:</span><br><span class="line">    app: mysql</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - name: mysql</span><br><span class="line">    port: 3306</span><br><span class="line">  clusterIP: None</span><br><span class="line">  selector:</span><br><span class="line">    app: mysql</span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: mysql-read</span><br><span class="line">  labels:</span><br><span class="line">    app: mysql</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - name: mysql</span><br><span class="line">    port: 3306</span><br><span class="line">  selector:</span><br><span class="line">    app: mysql</span><br><span class="line">    </span><br><span class="line">这两个 Service 都代理了所有携带 app&#x3D;mysql 标签的 Pod，也就是所有的 MySQL Pod。</span><br><span class="line">端口映射都是用 Service 的 3306 端口对应 Pod 的 3306 端口。不同的是，第一个名叫“mysql”的 Service 是一个 Headless Service（即：clusterIP&#x3D; None）。</span><br><span class="line">所以它的作用，是通过为 Pod 分配 DNS 记录来固定它的拓扑状态，比如“mysql-0.mysql”和“mysql-1.mysql”这样的 DNS 名字。</span><br><span class="line">其中，编号为 0 的节点就是我们的主节点。而第二个名叫“mysql-read”的 Service，则是一个常规的 Service。并且我们规定，所有用户的读请求，都必须访问第二个 Service 被自动分配的 DNS 记录，即：“mysql-read”（当然，也可以访问这个 Service 的 VIP）。</span><br><span class="line">这样，读请求就可以被转发到任意一个 MySQL 的主节点或者从节点上。备注：Kubernetes 中的所有 Service、Pod 对象，都会被自动分配同名的 DNS 记录。</span><br><span class="line">而所有用户的写请求，则必须直接以 DNS 记录的方式访问到 MySQL 的主节点，也就是：“mysql-0.mysql“这条 DNS 记录。</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-字段设计"><a href="#3-字段设计" class="headerlink" title="3 字段设计"></a>3 字段设计</h3><p><img src="https://static001.geekbang.org/resource/image/16/09/16aa2e42034830a0e64120ecc330a509.png" alt="img"></p>
+<p>selector ：  这个 StatefulSet 要管理的 Pod 必须携带 app=mysql 标签；它声明要使用的 Headless Service 的名字是：mysql。</p>
+<p>replicas ：3 ，表示它定义的 MySQL 集群有三个节点：一个 Master 节点，两个 Slave 节点。</p>
+<p> PVC ：</p>
+<ul>
+<li>resources.requests.strorage 指定了存储的大小为 10 GiB；</li>
+<li>ReadWriteOnce 指定了该存储的属性为可读写，并且一个 PV 只允许挂载在一个宿主机上。将来，这个 PV 对应的的 Volume 就会充当 MySQL Pod 的存储数据目录。</li>
+</ul>
+<h3 id="4-sidecar"><a href="#4-sidecar" class="headerlink" title="4 sidecar"></a>4 sidecar</h3><p>在 Slave 节点的 MySQL 容器第一次启动之前，执行初始化 SQL。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">...</span><br><span class="line"># template.spec.containers</span><br><span class="line">- name: xtrabackup</span><br><span class="line">  image: gcr.io&#x2F;google-samples&#x2F;xtrabackup:1.0</span><br><span class="line">  ports:</span><br><span class="line">  - name: xtrabackup</span><br><span class="line">    containerPort: 3307</span><br><span class="line">  command:</span><br><span class="line">  - bash</span><br><span class="line">  - &quot;-c&quot;</span><br><span class="line">  - |</span><br><span class="line">    set -ex</span><br><span class="line">    cd &#x2F;var&#x2F;lib&#x2F;mysql</span><br><span class="line">    </span><br><span class="line">    # 从备份信息文件里读取MASTER_LOG_FILEM和MASTER_LOG_POS这两个字段的值，用来拼装集群初始化SQL</span><br><span class="line">    if [[ -f xtrabackup_slave_info ]]; then</span><br><span class="line">      # 如果xtrabackup_slave_info文件存在，说明这个备份数据来自于另一个Slave节点。这种情况下，XtraBackup工具在备份的时候，就已经在这个文件里自动生成了&quot;CHANGE MASTER TO&quot; SQL语句。所以，我们只需要把这个文件重命名为change_master_to.sql.in，后面直接使用即可</span><br><span class="line">      mv xtrabackup_slave_info change_master_to.sql.in</span><br><span class="line">      # 所以，也就用不着xtrabackup_binlog_info了</span><br><span class="line">      rm -f xtrabackup_binlog_info</span><br><span class="line">    elif [[ -f xtrabackup_binlog_info ]]; then</span><br><span class="line">      # 如果只存在xtrabackup_binlog_inf文件，那说明备份来自于Master节点，我们就需要解析这个备份信息文件，读取所需的两个字段的值</span><br><span class="line">      [[ &#96;cat xtrabackup_binlog_info&#96; &#x3D;~ ^(.*?)[[:space:]]+(.*?)$ ]] || exit 1</span><br><span class="line">      rm xtrabackup_binlog_info</span><br><span class="line">      # 把两个字段的值拼装成SQL，写入change_master_to.sql.in文件</span><br><span class="line">      echo &quot;CHANGE MASTER TO MASTER_LOG_FILE&#x3D;&#39;$&#123;BASH_REMATCH[1]&#125;&#39;,\</span><br><span class="line">            MASTER_LOG_POS&#x3D;$&#123;BASH_REMATCH[2]&#125;&quot; &gt; change_master_to.sql.in</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    # 如果change_master_to.sql.in，就意味着需要做集群初始化工作</span><br><span class="line">    if [[ -f change_master_to.sql.in ]]; then</span><br><span class="line">      # 但一定要先等MySQL容器启动之后才能进行下一步连接MySQL的操作</span><br><span class="line">      echo &quot;Waiting for mysqld to be ready (accepting connections)&quot;</span><br><span class="line">      until mysql -h 127.0.0.1 -e &quot;SELECT 1&quot;; do sleep 1; done</span><br><span class="line">      </span><br><span class="line">      echo &quot;Initializing replication from clone position&quot;</span><br><span class="line">      # 将文件change_master_to.sql.in改个名字，防止这个Container重启的时候，因为又找到了change_master_to.sql.in，从而重复执行一遍这个初始化流程</span><br><span class="line">      mv change_master_to.sql.in change_master_to.sql.orig</span><br><span class="line">      # 使用change_master_to.sql.orig的内容，也是就是前面拼装的SQL，组成一个完整的初始化和启动Slave的SQL语句</span><br><span class="line">      mysql -h 127.0.0.1 &lt;&lt;EOF</span><br><span class="line">    $(&lt;change_master_to.sql.orig),</span><br><span class="line">      MASTER_HOST&#x3D;&#39;mysql-0.mysql&#39;,</span><br><span class="line">      MASTER_USER&#x3D;&#39;root&#39;,</span><br><span class="line">      MASTER_PASSWORD&#x3D;&#39;&#39;,</span><br><span class="line">      MASTER_CONNECT_RETRY&#x3D;10;</span><br><span class="line">    START SLAVE;</span><br><span class="line">    EOF</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    # 使用ncat监听3307端口。它的作用是，在收到传输请求的时候，直接执行&quot;xtrabackup --backup&quot;命令，备份MySQL的数据并发送给请求者</span><br><span class="line">    exec ncat --listen --keep-open --send-only --max-conns&#x3D;1 3307 -c \</span><br><span class="line">      &quot;xtrabackup --backup --slave-info --stream&#x3D;xbstream --host&#x3D;127.0.0.1 --user&#x3D;root&quot;</span><br><span class="line">  volumeMounts:</span><br><span class="line">  - name: data</span><br><span class="line">    mountPath: &#x2F;var&#x2F;lib&#x2F;mysql</span><br><span class="line">    subPath: mysql</span><br><span class="line">  - name: conf</span><br><span class="line">    mountPath: &#x2F;etc&#x2F;mysql&#x2F;conf.d</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+<p>xtrabackup 的 sidecar 容器的启动命令里，其实实现了两部分工作。</p>
+<ul>
+<li><p>MySQL 节点的初始化工作。这个初始化需要使用的 SQL，是 sidecar 容器拼装出来、保存在一个名为 change_master_to.sql.in 的文件里的，</p>
+<p>sidecar 容器首先会判断当前 Pod 的 /var/lib/mysql 目录下，是否有 xtrabackup_slave_info 这个备份信息文件。</p>
+</li>
+</ul>
+<blockquote>
+<p>如果有，则说明这个目录下的备份数据是由一个 Slave 节点生成的。这种情况下，XtraBackup 工具在备份的时候，就已经在这个文件里自动生成了”CHANGE MASTER TO” SQL 语句。所以，我们只需要把这个文件重命名为 change_master_to.sql.in，后面直接使用即可。</p>
+</blockquote>
+<blockquote>
+<p>如果没有 xtrabackup_slave_info 文件、但是存在 xtrabackup_binlog_info 文件，那就说明备份数据来自于 Master 节点。这种情况下，sidecar 容器就需要解析这个备份信息文件，读取 MASTER_LOG_FILE 和 MASTER_LOG_POS 这两个字段的值，用它们拼装出初始化 SQL 语句，然后把这句 SQL 写入到 change_master_to.sql.in 文件中。</p>
+</blockquote>
+<p>​        接下来，sidecar 容器就可以执行初始化了。从上面的叙述中可以看到，只要这个 change_master_to.sql.in 文件存在，那就说明接下来需要进行集群初始化操作。所以，这时候，sidecar 容器只需要读取并执行 change_master_to.sql.in 里面的“CHANGE MASTER TO”指令，再执行一句 START SLAVE 命令，一个 Slave 节点就被成功启动了。</p>
+<ul>
+<li><p>启动一个数据传输服务</p>
+<p>sidecar 容器会使用 ncat 命令启动一个工作在 3307 端口上的网络发送服务。一旦收到数据传输请求时，sidecar 容器就会调用 xtrabackup –backup 指令备份当前 MySQL 的数据，然后把这些备份数据返回给请求者。这就是为什么我们在 InitContainer 里定义数据拷贝的时候，访问的是“上一个 MySQL 节点”的 3307 端口。值得一提的是，由于 sidecar 容器和 MySQL 容器同处于一个 Pod 里，所以它是直接通过 Localhost 来访问和备份 MySQL 容器里的数据的，非常方便。</p>
+</li>
+</ul>
+<h3 id="5-mysql-pod"><a href="#5-mysql-pod" class="headerlink" title="5 mysql pod"></a>5 mysql pod</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">...</span><br><span class="line"># template.spec</span><br><span class="line">containers:</span><br><span class="line">- name: mysql</span><br><span class="line">  image: mysql:5.7</span><br><span class="line">  env:</span><br><span class="line">  - name: MYSQL_ALLOW_EMPTY_PASSWORD</span><br><span class="line">    value: &quot;1&quot;</span><br><span class="line">  ports:</span><br><span class="line">  - name: mysql</span><br><span class="line">    containerPort: 3306</span><br><span class="line">  volumeMounts:</span><br><span class="line">  - name: data</span><br><span class="line">    mountPath: &#x2F;var&#x2F;lib&#x2F;mysql</span><br><span class="line">    subPath: mysql</span><br><span class="line">  - name: conf</span><br><span class="line">    mountPath: &#x2F;etc&#x2F;mysql&#x2F;conf.d</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      cpu: 500m</span><br><span class="line">      memory: 1Gi</span><br><span class="line">  livenessProbe:</span><br><span class="line">    exec:</span><br><span class="line">      command: [&quot;mysqladmin&quot;, &quot;ping&quot;]</span><br><span class="line">    initialDelaySeconds: 30</span><br><span class="line">    periodSeconds: 10</span><br><span class="line">    timeoutSeconds: 5</span><br><span class="line">  readinessProbe:</span><br><span class="line">    exec:</span><br><span class="line">      # 通过TCP连接的方式进行健康检查</span><br><span class="line">      command: [&quot;mysql&quot;, &quot;-h&quot;, &quot;127.0.0.1&quot;, &quot;-e&quot;, &quot;SELECT 1&quot;]</span><br><span class="line">    initialDelaySeconds: 5</span><br><span class="line">    periodSeconds: 2</span><br><span class="line">    timeoutSeconds: 1</span><br></pre></td></tr></table></figure>
+
+<p> 数据目录是 /var/lib/mysql</p>
+<p>配置文件目录是 /etc/mysql/conf.d</p>
+<p>如果 MySQL 容器是 Slave 节点的话，它的数据目录里的数据，就来自于 InitContainer 从其他节点里拷贝而来的备份.</p>
+<p>它的配置文件目录 /etc/mysql/conf.d 里的内容，则来自于 ConfigMap 对应的 Volume.</p>
+<p>而它的初始化工作，则是由同一个 Pod 里的 sidecar 容器完成的.</p>
+<p> livenessProbe，通过 mysqladmin ping 命令来检查它是否健康.</p>
+<p>readinessProbe，通过查询 SQL（select 1）来检查 MySQL 服务是否可用。</p>
+<h3 id="6-创建PV"><a href="#6-创建PV" class="headerlink" title="6 创建PV"></a>6 创建PV</h3><ul>
+<li>使用存储插件 Rook</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ kubectl create -f rook-storage.yaml</span><br><span class="line">$ cat rook-storage.yaml</span><br><span class="line">apiVersion: ceph.rook.io&#x2F;v1beta1</span><br><span class="line">kind: Pool</span><br><span class="line">metadata:</span><br><span class="line">  name: replicapool</span><br><span class="line">  namespace: rook-ceph</span><br><span class="line">spec:</span><br><span class="line">  replicated:</span><br><span class="line">    size: 3</span><br><span class="line">---</span><br><span class="line">apiVersion: storage.k8s.io&#x2F;v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  name: rook-ceph-block</span><br><span class="line">provisioner: ceph.rook.io&#x2F;block</span><br><span class="line">parameters:</span><br><span class="line">  pool: replicapool</span><br><span class="line">  clusterNamespace: rook-ceph</span><br></pre></td></tr></table></figure>
+
+<p> StorageClass :自动地为集群里存在的每一个 PVC，调用存储插件（Rook）创建对应的 PV，从而省去了我们手动创建 PV 的机械劳动。</p>
+<blockquote>
+<p>在使用 Rook 的情况下，mysql-statefulset.yaml 里的 volumeClaimTemplates 字段需要加上声明 storageClassName=rook-ceph-block，才能使用到这个 Rook 提供的持久化存储。</p>
+</blockquote>
+<ul>
+<li>创建 StatefulSet</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">$ kubectl create -f mysql-statefulset.yaml</span><br><span class="line">$ kubectl get pod -l app&#x3D;mysql</span><br><span class="line">NAME      READY     STATUS    RESTARTS   AGE</span><br><span class="line">mysql-0   2&#x2F;2       Running   0          2m</span><br><span class="line">mysql-1   2&#x2F;2       Running   0          1m</span><br><span class="line">mysql-2   2&#x2F;2       Running   0          1m</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>StatefulSet 其实是一种特殊的 Deployment，只不过这个“Deployment”的每个 Pod 实例的名字里，都携带了一个唯一并且固定的编号。这个编号的顺序，固定了 Pod 的拓扑关系；这个编号对应的 DNS 记录，固定了 Pod 的访问方式；这个编号对应的 PV，绑定了 Pod 与持久化存储的关系。</li>
+<li>sidecar的意义：容器是单进程 一个容器里显然没办法管理两个常驻进程 所以sidecar是常驻进程，要监听3370端口 数据复制操作要用sidecar容器来处理，而不用mysql主容器来一并解决。</li>
+<li>kubernetes最小的管理单位是pod的概念，把思维从容器这层抽出来。然后也更清楚的理解了statefulset实现有状态，就是把特定的状态配置绑定在某个对象名称上面，然后通过control loop不断的维护这个对象的特性，只要这写特定对象和它们各自绑定的状态配置不变就实现了有状态的应用部署和维护。</li>
+<li>文章是一个statefulset分饰两个角色。个人感觉master和slave做成两个statefulset就easy很多。</li>
+<li>再次证实我的名言 “你所谓的‘本质’是由你认知的高度决定的”。当我学到operator的时候再回过头看这个就太zz了。。。</li>
+</ul>
+
+        </div>
+        
+        <div class="post-tag">
+            
+            <a class="tag" href="/tags/k8s/" title="k8s">k8s</a>
+            
+        </div>
+        
+    </article>
+</div>
+<div class="paginator">
+    
+        
+        
+            <a class="next" href="/%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90kubernetes%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+                <span class="nav-default">深入剖析kubernetes学习笔记</span>
+                <span class="nav-mobile">Next</span>
+                <i class="iconfont icon-next"></i>
+            </a>
+        
+    
+</div>
+<div id="comment-container"></div>
+    </div>
+</div>
+<footer class="footer-social">
+    
+
+    
+
+    
+
+    <div class="footer-copyright">
+        <p class="time-line">
+            &copy;
+            
+            
+            2020
+            &nbsp;<i class="iconfont icon-heart"></i>&nbsp;
+            <a target="_blank" href="https://github.com/leeson1995">Liluyao</a>
+        </p>
+        <p class="theme-info">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>  |  Theme -
+            <a target="_blank" href="https://github.com/iJinxin/hexo-theme-sky">Sky</a>
+        </p>
+    </div>
+</footer>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<script>
+    
+
+</script>
+</html>
