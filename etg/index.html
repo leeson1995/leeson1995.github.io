@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <title>liluyao - 专注于golang 微服务 kubernetes</title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_859455_eaq7v6w8ktj.css">
+<meta name="generator" content="Hexo 5.2.0"></head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <div class="header-title">
+
+        </div>
+        <nav class="header-nav">
+            
+            <a href="/" class="header-nav-link" >
+                Home
+            </a>
+            
+
+            
+            <a href="/archives" class="header-nav-link">
+                Archives
+            </a>
+            
+
+            
+            <a href="/tags" class="header-nav-link">
+                Tags
+            </a>
+            
+
+            
+            <a href="/about/" class="header-nav-link">
+                About
+            </a>
+            
+        </nav>
+    </div>
+</header>
+<header class="mobile-header">
+    <div class="mobile-nav">
+        <div class="mobile-nav-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="mobile-nav-title">
+            <a href="/" class="mobile-nav-title-link">Liluyao's Blog</a>
+        </div>
+
+    </div>
+    <nav class="mobile-menu">
+        <ul class="mobile-menu-list">
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-home"></i>
+                <a href="/" class="mobile-nav-link">Home</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-archive"></i>
+                <a href="/archives" class="mobile-nav-link">Archives</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-tag"></i>
+                <a href="/tags" class="mobile-nav-link">Tags</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-about"></i>
+                <a href="/about/" class="mobile-nav-link">About</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<div class="main">
+    <div class="content-inner">
+        <div class="posts">
+    <article class="post-whole">
+        <div class="post-title">
+            <h2 class="title">分布式高性能gRPC网关最佳实践</h2>
+            <div class="post-meta">
+                <span class="post-time">2020-06-27</span>
+                
+                <span class="post-category">
+                    
+                    <a class="category" href="/categories/2020/">2020</a>
+                    
+                </span>
+                
+                <span class="post-visit"> visited：<span id="busuanzi_value_page_pv"></span></span>
+            </div>
+        </div>
+        <div class="post-toc" id="post-toc">
+    <strong class="post-toc-title">目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Etgd-%E5%88%86%E4%BA%AB"><span class="toc-text">Etgd 分享</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80-%E3%80%81%E8%AF%9E%E7%94%9F%E7%9A%84%E5%8E%9F%E5%9B%A0-%E6%A0%B8%E5%BF%83%E9%9C%80%E6%B1%82"><span class="toc-text">一 、诞生的原因  - 核心需求</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80-%E3%80%81%E5%8E%8B%E6%B5%8B"><span class="toc-text">一 、压测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9E%E6%97%B6%E7%9B%91%E6%8E%A7%E5%8F%8A%E6%8A%A5%E8%AD%A6"><span class="toc-text">二、实时监控及报警</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%B9%E9%94%99%E7%AD%96%E7%95%A5-%E9%99%90%E6%B5%81%E9%99%8D%E7%BA%A7"><span class="toc-text">三、容错策略 限流降级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%9E%81%E7%AB%AF%E8%87%AA%E4%BF%9D%E7%AD%96%E7%95%A5-%E7%86%94%E6%96%AD"><span class="toc-text">四、极端自保策略 熔断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%93%8D%E5%BA%94%E6%9C%BA%E5%88%B6"><span class="toc-text">五、响应机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%BC%B9%E6%80%A7%E6%89%A9%E5%B1%95"><span class="toc-text">六、弹性扩展</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%89%8D%E9%99%A4%E4%BA%86opeart-TPS-%E5%85%B6%E4%BD%99%E9%83%BD%E6%B2%A1%E6%9C%89%E5%81%9A%E3%80%82%E6%89%80%E4%BB%A5%E5%BD%93%E5%89%8DET6%E5%AE%8C%E5%85%A8%E4%B8%8D%E5%85%B7%E5%A4%87%E9%87%91%E8%9E%8D%E7%BA%A7%E4%BA%A7%E5%93%81%E7%9A%84%E4%B8%8A%E7%BA%BF%E5%BD%A2%E6%80%81%E3%80%82"><span class="toc-text">目前除了opeart TPS 其余都没有做。所以当前ET6完全不具备金融级产品的上线形态。</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E7%9B%AE%E6%A0%87-%E9%9C%80%E6%B1%82%E7%BB%86%E8%8A%82"><span class="toc-text">功能目标 - 需求细节</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BD%93%E5%89%8D%E9%98%B6%E6%AE%B5-v0-0-1"><span class="toc-text">二、当前阶段 - v0.0.1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">1、目录结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91"><span class="toc-text">2、运行逻辑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E3%80%81Init"><span class="toc-text">2.1、Init</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2%E3%80%81%E8%B0%83%E7%94%A8%E9%80%BB%E8%BE%91"><span class="toc-text">2.2、调用逻辑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0"><span class="toc-text">三、开发笔记</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B1%95%E6%9C%9B%E6%9C%AA%E6%9D%A5-v0-1-0"><span class="toc-text">四、展望未来 - v0.1.0</span></a></li></ol>
+    <div class="back-to-top" id="back-to-top">
+        <a href="javascript:void(0);">回到顶部</a>
+    </div>
+</div>
+        <div class="post-content">
+            <h1 id="Etgd-分享"><a href="#Etgd-分享" class="headerlink" title="Etgd 分享"></a>Etgd 分享</h1><p>trading-system-gateway 是ETS对外暴漏服务的唯一入口，作为一个高可用的分布式网关，对外提供透穿grpc服务</p>
+<a id="more"></a>
+
+<h1 id="一-、诞生的原因-核心需求"><a href="#一-、诞生的原因-核心需求" class="headerlink" title="一 、诞生的原因  - 核心需求"></a>一 、诞生的原因  - 核心需求</h1><p> <strong>Ref</strong>  <a href="https://github.com/TigerWitForex/trading-system/issues/673"><strong>ETS系统健壮性需求分析</strong></a></p>
+<p>1、剥离业务系统，从外围控制、保护业务系统的稳定鲁棒和性能鲁棒。<br>2、基于业务需求对请求分流，满足业务系统扩展性需求 （核心功能 </p>
+<h2 id="一-、压测"><a href="#一-、压测" class="headerlink" title="一 、压测"></a>一 、压测</h2><p>描述：充分压测 高频报价下的订单计算，频繁opeart操作</p>
+<p>目标：测出系统性能上限，作为容错阈值<br>         重点参数： 可承受持仓单及pending单，Operator TPS。</p>
+<h2 id="二、实时监控及报警"><a href="#二、实时监控及报警" class="headerlink" title="二、实时监控及报警"></a>二、实时监控及报警</h2><p>描述：订单监控，异常监控，报价对比及监控 ,性能监控</p>
+<h2 id="三、容错策略-限流降级"><a href="#三、容错策略-限流降级" class="headerlink" title="三、容错策略 限流降级"></a>三、容错策略 限流降级</h2><p>描述：根据压测结果 作为系统自我保护阈值。</p>
+<p><strong>容错原则</strong>：以系统<strong>实时</strong>、<strong>准确</strong>的订单计算为原则。</p>
+<ul>
+<li><p>限流：当持仓单接近系统上限时，限制部分组或全部组的开仓行为。</p>
+</li>
+<li><p>降级：当处理性能接近系统阈值是，对etc等外围服务降级。</p>
+</li>
+</ul>
+<h2 id="四、极端自保策略-熔断"><a href="#四、极端自保策略-熔断" class="headerlink" title="四、极端自保策略 熔断"></a>四、极端自保策略 熔断</h2><p>描述：分业务级熔断和服务级熔断，业务级熔断属于容错策略，服务级熔断属于最终自保策略。</p>
+<ul>
+<li>当触发严重监控报警时或容错策略无效时，系统应当停止对外提供服务<ul>
+<li>如有必要取消部分小额持仓单calc计算</li>
+</ul>
+</li>
+<li>当跳闸时 应当有完备的重启策略再生策略， 或分流 或削减负荷</li>
+<li>当因服务内部（协程泄漏，内存溢出等）或不可预知的破坏<strong>容错原则</strong>的问题发生时触发熔断。</li>
+</ul>
+<h2 id="五、响应机制"><a href="#五、响应机制" class="headerlink" title="五、响应机制"></a>五、响应机制</h2><p>描述：容错触发后使上游服务感知并做对应的请求相应，用户体验。</p>
+<h2 id="六、弹性扩展"><a href="#六、弹性扩展" class="headerlink" title="六、弹性扩展"></a>六、弹性扩展</h2><p>描述：根据性能需求 当系统达到瓶颈时 弹性扩展服务性能或增加服务并行数</p>
+<ul>
+<li>单体性能扩展：基于容器及运维配合</li>
+<li>分布式：分布式服务改造 流量分流</li>
+</ul>
+<h2 id="目前除了opeart-TPS-其余都没有做。所以当前ET6完全不具备金融级产品的上线形态。"><a href="#目前除了opeart-TPS-其余都没有做。所以当前ET6完全不具备金融级产品的上线形态。" class="headerlink" title="目前除了opeart TPS 其余都没有做。所以当前ET6完全不具备金融级产品的上线形态。"></a>目前除了opeart TPS 其余都没有做。所以当前ET6完全不具备金融级产品的上线形态。</h2><h2 id="功能目标-需求细节"><a href="#功能目标-需求细节" class="headerlink" title="功能目标 - 需求细节"></a>功能目标 - 需求细节</h2><ul>
+<li><input checked="" disabled="" type="checkbox"> 注册发现</li>
+<li><input checked="" disabled="" type="checkbox"> 透明代理</li>
+<li><input checked="" disabled="" type="checkbox"> LB实现之group分流</li>
+<li><input checked="" disabled="" type="checkbox"> 事件同步</li>
+</ul>
+<hr>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> 全局入口流控 </li>
+<li><input checked="" disabled="" type="checkbox"> 请求流控 </li>
+<li><input disabled="" type="checkbox"> 超时控制</li>
+<li><input disabled="" type="checkbox"> 自适应系统过载保护</li>
+<li><input disabled="" type="checkbox"> 动态系统保护</li>
+</ul>
+<hr>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> 优雅反馈</li>
+<li><input disabled="" type="checkbox"> 日志归档</li>
+<li><input checked="" disabled="" type="checkbox"> 监控及报警</li>
+<li><input disabled="" type="checkbox"> 服务治理</li>
+<li><input disabled="" type="checkbox"> 可视化</li>
+</ul>
+<hr>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> 容器化</li>
+<li><input checked="" disabled="" type="checkbox"> 云原生（k8s</li>
+</ul>
+<h1 id="二、当前阶段-v0-0-1"><a href="#二、当前阶段-v0-0-1" class="headerlink" title="二、当前阶段 - v0.0.1"></a>二、当前阶段 - v0.0.1</h1><h2 id="1、目录结构"><a href="#1、目录结构" class="headerlink" title="1、目录结构"></a>1、目录结构</h2><ul>
+<li>cmd 可执行文件 入口</li>
+<li>dao 数据持久</li>
+<li>dto 数据对象</li>
+<li>event 事件</li>
+<li>load_balance 负载均衡接口及实现</li>
+<li>middleware 中间件插件 流控、追踪等</li>
+<li>proxy 反向代理实现</li>
+<li>registry 注册发现</li>
+<li>router 可视化后端实现</li>
+<li>util 公共工具</li>
+</ul>
+<h2 id="2、运行逻辑"><a href="#2、运行逻辑" class="headerlink" title="2、运行逻辑"></a>2、运行逻辑</h2><h3 id="2-1、Init"><a href="#2-1、Init" class="headerlink" title="2.1、Init"></a>2.1、Init</h3><p>// http header matadata [gorup] :[ BRD]<br> http body data []byte</p>
+<ul>
+<li>ETG启动时，会通过registy获取全部健康BackEnd元信息，并实时watch。</li>
+<li>通过BackEnd元信息获取ServiceMeta.LbStrategy 构建groupLb缓存。</li>
+<li>通过消息监听，获取并更新groupLb缓存。</li>
+</ul>
+<h3 id="2-2、调用逻辑"><a href="#2-2、调用逻辑" class="headerlink" title="2.2、调用逻辑"></a>2.2、调用逻辑</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">graph TD</span><br><span class="line">Req[Req] --&gt; ETG[ETG] </span><br><span class="line">ETG --&gt; gurad&#123;gurad&#125;</span><br><span class="line">gurad --&gt;|!Blocked| LB[LB]</span><br><span class="line">gurad --&gt;|Blocked| reject[reject]</span><br><span class="line">LB --&gt;|login!&#x3D;nil| BackEnd[BackEnd]</span><br><span class="line">LB --&gt;|login&#x3D;&#x3D;nil| master[master]</span><br></pre></td></tr></table></figure>
+
+<h1 id="三、开发笔记"><a href="#三、开发笔记" class="headerlink" title="三、开发笔记"></a>三、开发笔记</h1><ul>
+<li>透传 </li>
+</ul>
+<blockquote>
+<p>codec </p>
+</blockquote>
+<ul>
+<li><p>grpc client 性能优化 http2 streaming/multiplexing </p>
+<blockquote>
+<p>二进制分帧<br>很容易实现多流并行而不依赖建立多个 TCP 连接</p>
+</blockquote>
+</li>
+</ul>
+<ul>
+<li>grpc调用原理<pre><code>服务端：
+    lis,err = net.listen()
+    s := grpc.NewServer()
+    grpc.RegisterService()
+    s.Serve(lis)
+    lis.Accepct()
+        s.serveWG.Add(1)
+        go s.handleRawConn()</code></pre>
+</li>
+</ul>
+<ul>
+<li>gateway功能点<pre><code>         编解码codec
+         数据处理UnaryProxyHandler
+         自定义负载 业务级分流 Balancefunc
+         数据一致性</code></pre>
+</li>
+</ul>
+<h1 id="四、展望未来-v0-1-0"><a href="#四、展望未来-v0-1-0" class="headerlink" title="四、展望未来 - v0.1.0"></a>四、展望未来 - v0.1.0</h1><ul>
+<li>metadata 优化 （更兼容，更简短</li>
+<li>代码优化，（插拔性，易读性</li>
+<li>上线 metrics</li>
+<li>metrics 整合sentinel （<a href="https://github.com/alibaba/sentinel-golang/issues/70%EF%BC%89">https://github.com/alibaba/sentinel-golang/issues/70）</a></li>
+<li>紧密结合knative 保证ETG的绝对稳定 </li>
+</ul>
+
+        </div>
+        
+        <div class="post-tag">
+            
+            <a class="tag" href="/tags/share/" title="share">share</a>
+            
+        </div>
+        
+    </article>
+</div>
+<div class="paginator">
+    
+        
+            <a class="prev" href="/et6/">
+                <i class="iconfont icon-prev"></i>
+                <span class="nav-default">ET6工程化演进之路</span>
+                <span class="nav-mobile">Prev</span>
+            </a>
+        
+        
+            <a class="next" href="/kafka/">
+                <span class="nav-default">kafka不完全避坑指南</span>
+                <span class="nav-mobile">Next</span>
+                <i class="iconfont icon-next"></i>
+            </a>
+        
+    
+</div>
+<div id="comment-container"></div>
+    </div>
+</div>
+<footer class="footer-social">
+    
+
+    
+
+    
+
+    <div class="footer-copyright">
+        <p class="time-line">
+            &copy;
+            
+            
+            2021
+            &nbsp;<i class="iconfont icon-heart"></i>&nbsp;
+            <a target="_blank" href="https://github.com/leeson1995">Liluyao</a>
+        </p>
+        <p class="theme-info">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>  |  Theme -
+            <a target="_blank" href="https://github.com/iJinxin/hexo-theme-sky">Sky</a>
+        </p>
+    </div>
+</footer>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<script>
+    
+
+</script>
+</html>

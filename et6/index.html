@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <title>liluyao - 专注于golang 微服务 kubernetes</title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    
+<link rel="stylesheet" href="/css/gitment.css">
+
+    <link rel="stylesheet" type="text/css" href="//at.alicdn.com/t/font_859455_eaq7v6w8ktj.css">
+<meta name="generator" content="Hexo 5.2.0"></head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <div class="header-title">
+
+        </div>
+        <nav class="header-nav">
+            
+            <a href="/" class="header-nav-link" >
+                Home
+            </a>
+            
+
+            
+            <a href="/archives" class="header-nav-link">
+                Archives
+            </a>
+            
+
+            
+            <a href="/tags" class="header-nav-link">
+                Tags
+            </a>
+            
+
+            
+            <a href="/about/" class="header-nav-link">
+                About
+            </a>
+            
+        </nav>
+    </div>
+</header>
+<header class="mobile-header">
+    <div class="mobile-nav">
+        <div class="mobile-nav-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="mobile-nav-title">
+            <a href="/" class="mobile-nav-title-link">Liluyao's Blog</a>
+        </div>
+
+    </div>
+    <nav class="mobile-menu">
+        <ul class="mobile-menu-list">
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-home"></i>
+                <a href="/" class="mobile-nav-link">Home</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-archive"></i>
+                <a href="/archives" class="mobile-nav-link">Archives</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-tag"></i>
+                <a href="/tags" class="mobile-nav-link">Tags</a>
+            </li>
+            <li class="mobile-menu-item">
+                <i class="iconfont icon-about"></i>
+                <a href="/about/" class="mobile-nav-link">About</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<div class="main">
+    <div class="content-inner">
+        <div class="posts">
+    <article class="post-whole">
+        <div class="post-title">
+            <h2 class="title">ET6工程化演进之路</h2>
+            <div class="post-meta">
+                <span class="post-time">2020-10-27</span>
+                
+                <span class="post-category">
+                    
+                    <a class="category" href="/categories/2020/">2020</a>
+                    
+                </span>
+                
+                <span class="post-visit"> visited：<span id="busuanzi_value_page_pv"></span></span>
+            </div>
+        </div>
+        <div class="post-toc" id="post-toc">
+    <strong class="post-toc-title">目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ET6%E5%B7%A5%E7%A8%8B%E5%8C%96%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF"><span class="toc-text">ET6工程化演进之路</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E6%B3%A8%E7%82%B9"><span class="toc-text">关注点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E7%94%A8%E6%80%A7-%E5%87%86%E7%A1%AE%E6%80%A7"><span class="toc-text">可用性&#x2F;准确性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-text">性能优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E7%BB%B4%E6%8A%A4%E6%80%A7"><span class="toc-text">可维护性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AA%E6%9D%A5"><span class="toc-text">未来</span></a></li></ol></li></ol>
+    <div class="back-to-top" id="back-to-top">
+        <a href="javascript:void(0);">回到顶部</a>
+    </div>
+</div>
+        <div class="post-content">
+            <h1 id="ET6工程化演进之路"><a href="#ET6工程化演进之路" class="headerlink" title="ET6工程化演进之路"></a>ET6工程化演进之路</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p>1、模块介绍</p>
+<ul>
+<li><p>职责</p>
+</li>
+<li><p>初始化过程<br>2、以一笔交易例，贯穿调用链路<br>3、可用性、性能优化、代码可维护性 各举一例<br>4、展望未来</p>
+</li>
+</ul>
+<a id="more"></a>
+
+
+<h2 id="关注点"><a href="#关注点" class="headerlink" title="关注点"></a>关注点</h2><ul>
+<li>安全  客户资产安全是第一要务</li>
+<li>稳定  系统稳定和业务连续性</li>
+<li>高效  在以上基础上追求更高的业务处理能力</li>
+</ul>
+<h2 id="可用性-准确性"><a href="#可用性-准确性" class="headerlink" title="可用性/准确性"></a>可用性/准确性</h2><ul>
+<li><p>衡量可用性标准</p>
+</li>
+<li><p>消息队列，事物分离，一致性提升, 多副本</p>
+</li>
+<li><p>虽然以内存为准，但也要把内存和数据库的一致性做到极致 </p>
+<ul>
+<li>ack = waitforall，isr 选举 数据冗余 防丢失</li>
+<li>最大尝试</li>
+<li>补单对账，终极兜底</li>
+</ul>
+</li>
+<li><p>业务并发问题<br>1）交易类型之间<br>2）手动触发跟自动触发之间<br>应对</p>
+<ul>
+<li>引入用户锁，同一个用户同一时刻只能执行一个事物</li>
+<li>交易系统的所有订单是一个有序队列。不同的用户在同一时刻下单，也必须由定序系统确定先后顺序。冻结保证金.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>Price 作为交易系统的血液 </p>
+<ul>
+<li>准确 </li>
+<li>顺序(全局)</li>
+<li>完整（丢失情况）</li>
+<li>实时（延迟情况）<br>应对</li>
+<li>kafka 有序队列保证顺序</li>
+<li>根据系统运行状况，动态丢弃报价，防止剥头皮（滑点），当然丢弃策略理论上是比较严格的，且可追溯的。</li>
+</ul>
+</li>
+<li><p>隔夜息</p>
+<ul>
+<li>打包成kafka事物消息</li>
+</ul>
+</li>
+<li><p> 充分充足的集成测试和压力测试：包括不限于单用户单品种，单用户多品种，多用户多品种，系统和手动交叉</p>
+</li>
+</ul>
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><ul>
+<li>decimal ，作为最重要数据类型 自研10x 于shopspring</li>
+<li>日志异步</li>
+<li>内存复用</li>
+<li>底层热点函数去锁，zero malloc</li>
+<li>calc 并发优化，至今最大的性能优化 持仓单10倍增长</li>
+</ul>
+<h2 id="可维护性"><a href="#可维护性" class="headerlink" title="可维护性"></a>可维护性</h2><p>模块组织结构</p>
+<ul>
+<li> MVC，面向接口编程，支持扩展，开闭原则</li>
+<li> 逐层暴露接口，逐层继承接口，中间通过私有局部变量进行数据保护</li>
+<li>最高层对外提供一个服务<ul>
+<li>作用：实现一个服务XXService，并提供实例化方法 service.go</li>
+</ul>
+</li>
+<li>中间层提供具体实现，为顶层服务<ul>
+<li>作用：提供顶层的实现方法，根据需要进行持久化存储等等逻辑实现</li>
+<li>继承最底层接口，实现结构体：</li>
+<li>高内聚，低耦合 </li>
+</ul>
+</li>
+<li> symbol source session 静态数据 ，集成在同一个模块，对crud等功能抽象，对外提供的能力</li>
+</ul>
+<h2 id="未来"><a href="#未来" class="headerlink" title="未来"></a>未来</h2><ul>
+<li>缓存分片</li>
+<li>单机无法保证高可用，需要引入多实例来提供高可用性</li>
+</ul>
+
+        </div>
+        
+        <div class="post-tag">
+            
+            <a class="tag" href="/tags/share/" title="share">share</a>
+            
+        </div>
+        
+    </article>
+</div>
+<div class="paginator">
+    
+        
+            <a class="prev" href="/%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90kubernetes%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+                <i class="iconfont icon-prev"></i>
+                <span class="nav-default">深入剖析kubernetes学习笔记</span>
+                <span class="nav-mobile">Prev</span>
+            </a>
+        
+        
+            <a class="next" href="/etg/">
+                <span class="nav-default">分布式高性能gRPC网关最佳实践</span>
+                <span class="nav-mobile">Next</span>
+                <i class="iconfont icon-next"></i>
+            </a>
+        
+    
+</div>
+<div id="comment-container"></div>
+    </div>
+</div>
+<footer class="footer-social">
+    
+
+    
+
+    
+
+    <div class="footer-copyright">
+        <p class="time-line">
+            &copy;
+            
+            
+            2021
+            &nbsp;<i class="iconfont icon-heart"></i>&nbsp;
+            <a target="_blank" href="https://github.com/leeson1995">Liluyao</a>
+        </p>
+        <p class="theme-info">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>  |  Theme -
+            <a target="_blank" href="https://github.com/iJinxin/hexo-theme-sky">Sky</a>
+        </p>
+    </div>
+</footer>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="/js/index.js"></script>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<script>
+    
+
+</script>
+</html>
