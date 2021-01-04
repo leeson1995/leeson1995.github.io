@@ -166,19 +166,32 @@
 </ul>
 <h2 id="可维护性"><a href="#可维护性" class="headerlink" title="可维护性"></a>可维护性</h2><p>模块组织结构</p>
 <ul>
-<li> MVC，面向接口编程，支持扩展，开闭原则</li>
-<li> 逐层暴露接口，逐层继承接口，中间通过私有局部变量进行数据保护</li>
-<li>最高层对外提供一个服务<ul>
+<li><p> MVC，面向接口编程，支持扩展，开闭原则</p>
+</li>
+<li><p>逐层暴露接口，逐层继承接口，中间通过私有局部变量进行数据保护</p>
+</li>
+<li><p>最高层对外提供一个服务</p>
+<ul>
 <li>作用：实现一个服务XXService，并提供实例化方法 service.go</li>
 </ul>
 </li>
-<li>中间层提供具体实现，为顶层服务<ul>
+<li><p>中间层提供具体实现，为顶层服务</p>
+<ul>
 <li>作用：提供顶层的实现方法，根据需要进行持久化存储等等逻辑实现</li>
 <li>继承最底层接口，实现结构体：</li>
 <li>高内聚，低耦合 </li>
 </ul>
 </li>
-<li> symbol source session 静态数据 ，集成在同一个模块，对crud等功能抽象，对外提供的能力</li>
+<li><p>symbol source session 静态数据 ，集成在同一个模块，对crud等功能抽象，对外提供的能力</p>
+</li>
+<li><p>configer ：将通用的数据结构提成一个包，避免冗余代码，组织混乱，循环引用等一些问题。</p>
+</li>
+<li><p>trade：之前是所有交易类型融合在一起，在一个大代码段里，混乱，难读，易改错，业务边界混乱。</p>
+<ul>
+<li>通过接口将交易流程抽象，各种交易类型去多态的实现。 业务边界清晰，提升代码易读性。</li>
+<li>通过组合实现继承 ，ps： so就走平仓逻辑，所以so直接继承mkclose</li>
+</ul>
+</li>
 </ul>
 <h2 id="未来"><a href="#未来" class="headerlink" title="未来"></a>未来</h2><ul>
 <li>缓存分片</li>
@@ -205,8 +218,8 @@
             </a>
         
         
-            <a class="next" href="/etg/">
-                <span class="nav-default">分布式高性能gRPC网关最佳实践</span>
+            <a class="next" href="/performance/">
+                <span class="nav-default">高并发低延迟金融系统核心模块改造最佳实践</span>
                 <span class="nav-mobile">Next</span>
                 <i class="iconfont icon-next"></i>
             </a>
