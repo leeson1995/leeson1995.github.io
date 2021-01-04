@@ -140,7 +140,7 @@
             </div>
             <div class="post-content">
                 
-                    <h1 id="ET6工程化演进之路"><a href="#ET6工程化演进之路" class="headerlink" title="ET6工程化演进之路"></a>ET6工程化演进之路</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p>1、模块介绍</p>
+                    <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p>1、模块介绍</p>
 <ul>
 <li><p>职责</p>
 </li>
@@ -200,13 +200,147 @@
             </div>
             <div class="post-content">
                 
-                    <h1 id="Kafka不完全避坑指南"><a href="#Kafka不完全避坑指南" class="headerlink" title="Kafka不完全避坑指南"></a>Kafka不完全避坑指南</h1>
-                    <div class="read-more">
-                        <a href="/kafka/" class="read-more-link">
-                            ReadMore
-                            <i class="iconfont icon-readmore"></i>
-                        </a>
-                    </div>
+                    <a id="more"></a>
+
+
+
+<h2 id="一、-优点"><a href="#一、-优点" class="headerlink" title="一、 优点"></a>一、 优点</h2><p>解偶，冗余：规避数据丢失，灵活：限流消峰、有序、缓冲、异步、健壮</p>
+<h2 id="二、选型"><a href="#二、选型" class="headerlink" title="二、选型"></a>二、选型</h2><pre><code>性能第一：rabbitMQ/zeromq
+
+吞吐第一：kafka，rocketMQ（topic）</code></pre>
+<p> 数据可靠性：kafka replica/ha</p>
+<h2 id="二、原理"><a href="#二、原理" class="headerlink" title="二、原理"></a>二、原理</h2><h3 id="2-1-术语"><a href="#2-1-术语" class="headerlink" title="2.1 术语"></a>2.1 术语</h3><p>名词： Broker，Topic,Partition,Segment,Offset</p>
+<p>调度：Broker Controller,Partition Leader,Partition Follower,Consumer group</p>
+<p>可靠性：Replizcas(LEO,HW),ISR(In-Sync Replicas),AR(Assigned Replicas),OSR(Outof-Sync Replicas)</p>
+<p><img src="kafka-src/hw.jpg" alt="Alt"></p>
+<h3 id="2-2-为什么快"><a href="#2-2-为什么快" class="headerlink" title="2.2 为什么快"></a>2.2 为什么快</h3><ul>
+<li><p>顺序写</p>
+<pre><code>  顺序写磁盘效率比随机写内存还要高 index/log</code></pre>
+<ul>
+<li>zero copy<br> 减少不必要的内核缓冲区跟用户缓冲区间的拷贝，从而减少CPU的开销和内核态切换开销，达到性能的提升。<br> 传统io：<pre><code> ![传统io](kafka-src/io.jpg)</code></pre>
+ zerocopy：<pre><code> ![zerocopy](kafka-src/zero.jpg)</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>log</strong></p>
+<p>sendfile(int out_fd, int in_fd, off_t *offset, size_t count)<br>                //文件跟文件，文件跟socket</p>
+<p><strong>索引</strong> </p>
+<p>mmap<br>      | –topic1-0<br>        | –00000000000000000000.index<br>        | –00000000000000000000.log<br>        | –00000000000000368769.index<br>        | –00000000000000368769.log</p>
+<p><img src="kafka-src/segment.jpg" alt="Alt"></p>
+<ul>
+<li>分区</li>
+</ul>
+<h3 id="2-3-为什么可靠"><a href="#2-3-为什么可靠" class="headerlink" title="2.3 为什么可靠"></a>2.3 为什么可靠</h3><ul>
+<li><p>producer acks</p>
+<p>  如果一个follower挂掉、卡住或者同步太慢，leader会把这个follower从ISR列表中删除。</p>
+</li>
+<li><p>Replica （机架感知</p>
+</li>
+</ul>
+<h3 id="2-4-如何实现幂等性"><a href="#2-4-如何实现幂等性" class="headerlink" title="2.4 如何实现幂等性"></a>2.4 如何实现幂等性</h3><ul>
+<li>为什么需要保证幂等性：<br>kafka需要要确保Exactly-Once语义。在Kafka Broker确认Ack时，出现网络异常、FullGC、OOM等问题时导致Ack超时，Producer会进行重复发送。</li>
+<li>实现原理：<br>Producer初始化时，会被分配一个唯一的ProducerID，对于每个ProducerID，Producer发送数据的每个Topic和Partition都对应一个从0开始单调递增的SequenceNumber值。<br>在每条消息中附带了PID（ProducerID）和SequenceNumber。相同的PID和SequenceNumber发送给Broker，而之前Broker缓存过之前发送的相同的消息，那么在消息流中的消息就只有一条，不会出现重复发送的情况</li>
+</ul>
+<h3 id="2-5-如何实现事物"><a href="#2-5-如何实现事物" class="headerlink" title="2.5 如何实现事物"></a>2.5 如何实现事物</h3><ul>
+<li><p>TransactionalID：<br>用户只需要在 Producer 的配置中配置 transactional.id，通过 initTransactions() 初始化事务状态信息，再通过 beginTransaction() 标识一个事务的开始，然后通过 commitTransaction() 或 abortTransaction() 对事务进行 commit 或 abort。</p>
+</li>
+<li><p>saram实现已提上日程issues：<br><a href="https://github.com/beatlabs/patron/issues/222">https://github.com/beatlabs/patron/issues/222</a></p>
+</li>
+<li><p>confluence关于事物实现的解释<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/KAFKA/Transactional+Messaging+in+Kafka">https://cwiki.apache.org/confluence/display/KAFKA/Transactional+Messaging+in+Kafka</a></p>
+</li>
+</ul>
+<h2 id="三、调优"><a href="#三、调优" class="headerlink" title="三、调优"></a>三、调优</h2><p>吞吐量、延时、持久性、可用性 。每一个方向的优化思路都是不同的，甚至是相反。</p>
+<p>**producer **</p>
+<ul>
+<li>batch.size:每个Batch要存放多少数据就可以发送出去了</li>
+<li>linger.ms :Batch被创建之后，最多过多久，不管这个Batch有没有写满</li>
+<li>compression.type ：压缩类型 gzip 、lz</li>
+<li>request.required.acks<br>1（默认）：这意味着producer在ISR中的leader已成功收到数据并得到确认。如果leader宕机了，则会丢失数据。<br>0：这意味着producer无需等待来自broker的确认而继续发送下一批消息。这种情况下数据传输效率最高，但是数据可靠性确是最低的。<br>-1：producer需要等待ISR中的所有follower都确认接收到数据后才算一次发送完成，可靠性最高。但是这样也不能保证数据不丢失，比如当ISR中只有leader时（前面ISR那一节讲到，ISR中的成员由于某些情况会增加也会减少，最少就只剩一个leader），这样就变成了acks=1的情况。min.insync.replicas </li>
+</ul>
+<p>**Consumer **</p>
+<ul>
+<li>fetch.min.bytes ：每次fetch请求时，server应该返回的最小字节数。</li>
+<li>auto.commit.enable：consumer所fetch的消息的offset将会自动的同步到zookeeper</li>
+<li>num.replica.fetchers：拉取线程数</li>
+</ul>
+<p><strong>Broker</strong></p>
+<ul>
+<li>log.flush.interval.ms/ log.flush.interval.messages刷盘策略</li>
+<li>num.network.threads： broker处理消息的最大线程数</li>
+<li>num.io.threads：broker处理磁盘IO的线程数</li>
+<li>jvm ：Xmx，Xms</li>
+</ul>
+<h2 id="避坑"><a href="#避坑" class="headerlink" title="避坑"></a>避坑</h2><p>1、 重复消费问题（kafka 只能保证At least once，不能保证Exactly once)</p>
+<ul>
+<li>同一个 Consumer 重复消费：消费超时引发重复消费</li>
+</ul>
+<p>提交 Offset 时候，消费时间超时，则 Broker 认为这条消息未消费成功。这时就会产生重复消费问题</p>
+<ul>
+<li><p>不同的 Consumer 重复消费：当 Consumer 消费了消息，但还没有提交 Offset 时宕机，则这些已经被消费过的消息会被重复消费。</p>
+<p>msg-uuid/设置offset提交时间/consumer 手动维护offset。</p>
+</li>
+</ul>
+<p>2、消费者不关闭会话带来的一系列问题<br> 新消费者无法介入</p>
+<p>3、解题思路</p>
+<p><strong>充分利用命令行工具</strong></p>
+<p>kafka-console-producer.sh</p>
+<p>kafka-console-consumer.sh </p>
+<p>kafka-topics.sh  –topic  –describe</p>
+<p>kafka-consumer-groups.sh  –group  –describe</p>
+<p>kafka-run-class.sh kafka.tools.ConsumerOffsetChecker –group  –topic </p>
+<p>kafka-producer-perf-test.sh –num-records 消息数 –record-size 每个记录的字节数 –throughput 每秒钟发送的记录数</p>
+<h2 id="SDK-对比"><a href="#SDK-对比" class="headerlink" title="SDK 对比"></a>SDK 对比</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>Kafka-go</th>
+<th>Sarama</th>
+<th>Confluent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接入成本</td>
+<td>低</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>性能-1w以下</td>
+<td>低</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>性能-1w以上</td>
+<td>中</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td>性能-批量</td>
+<td>高</td>
+<td>中</td>
+<td>中</td>
+</tr>
+<tr>
+<td>灵活性</td>
+<td>高</td>
+<td>低</td>
+<td>中</td>
+</tr>
+<tr>
+<td>事物</td>
+<td>否</td>
+<td>否</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<p>ref： <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/8c6b056f73ce">https://www.jianshu.com/p/8c6b056f73ce</a> </p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/9bYe095WzyRLZ3_B5PveZQ">https://mp.weixin.qq.com/s/9bYe095WzyRLZ3_B5PveZQ</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/9MNmA5Q1hM0yH0mu5JNBow">https://mp.weixin.qq.com/s/9MNmA5Q1hM0yH0mu5JNBow</a> 高可用</p>
+<p><a href="https://github.com/beatlabs/patron/issues/222">https://github.com/beatlabs/patron/issues/222</a> sarama事物讨论</p>
+
                 
             </div>
         </article>
