@@ -104,17 +104,17 @@
     </div>
 </div>
         <div class="post-content">
-            <h2 id="1、性能演进"><a href="#1、性能演进" class="headerlink" title="1、性能演进"></a>1、性能演进</h2><ul>
-<li>befor 1000 持仓单，200qps</li>
-<li> after  &gt;30000持仓单，&lt;=1000qps （持仓单计算上限：报价消费延迟5个</li>
-<li> 规则</li>
-</ul>
+            <p>在核心交易系统性能优化上的实践</p>
 <a id="more"></a>
 
 
 
 
-
+<h2 id="1、性能演进"><a href="#1、性能演进" class="headerlink" title="1、性能演进"></a>1、性能演进</h2><ul>
+<li>befor 1000 持仓单，200qps</li>
+<li> after  &gt;30000持仓单，&lt;=1000qps （持仓单计算上限：报价消费延迟5个</li>
+<li> 规则</li>
+</ul>
 <p>##2、服务性能分析</p>
 <p><strong>前置认知：计算密集型系统</strong>    计算吞吐，计算迟滞，cpu寸土寸金 </p>
 <h3 id="2-1-整体分析"><a href="#2-1-整体分析" class="headerlink" title="2.1 整体分析"></a>2.1 整体分析</h3><p>go tool pprof <a target="_blank" rel="noopener" href="http://localhost:6060/debug/pprof/profile?seconds=60">http://localhost:6060/debug/pprof/profile?seconds=60</a></p>
